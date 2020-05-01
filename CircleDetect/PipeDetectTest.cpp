@@ -23,7 +23,7 @@ void main()
 {
 	// Load colour image and create empty images for output:	
 
-	String ImgPath = "C:\\Users\\Zoltán\\Desktop\\6(FSA2).png"; 
+	String ImgPath = "C:\\Users\\Zoltán\\Desktop\\12(FSA2).png"; 
 
 	Mat OG = imread(ImgPath);
 	Mat img = imread(ImgPath, IMREAD_GRAYSCALE); //Load the image in grayscale
