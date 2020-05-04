@@ -7,13 +7,18 @@
 using namespace cv;
 using namespace std;
 
+struct features //crate data structure for the features
+{
+	int index;
+	int area;
+};
 
 
 void main()
 {
 	// Load colour image and create empty images for output:	
 
-	String ImgPath = "C:\\Users\\Zoltán\\Desktop\\bin2.png"; 
+	String ImgPath = "C:\\Users\\Zoltán\\Desktop\\nothing.png"; 
 
 	Mat OG = imread(ImgPath);
 	Mat img = imread(ImgPath, IMREAD_GRAYSCALE); //Load the image in grayscale
@@ -23,81 +28,116 @@ void main()
 	Mat contourImg = Mat(img.size(), CV_8U);
 	Mat Blur = Mat(img.size(), CV_8U);
 
+	VideoCapture cap("C:\\Users\\Zoltán\\Desktop\\pipe.mp4");
 
-	//Mat elem = getStructuringElement(MORPH_ELLIPSE, Size(15, 15));
-	//morphologyEx(img, morph1, MORPH_CLOSE, elem); //Closes holes in objects
+	//Uncomment the following line if you want to start the video in the middle
+	//cap.set(CAP_PROP_POS_MSEC, 300); 
 
-	medianBlur(img, Blur, 5);
-	//imshow("Blur", Blur);
-	
-	//Find objects:
+	//get the frames rate of the video
+	double fps = cap.get(CAP_PROP_FPS);
+	cout << "Frames per seconds : " << fps << endl;
 
-	vector<Vec3f> circles;
+	String window_name = "Pipe video";
 
-	Vec3i match(0,0,-1);
+	namedWindow(window_name, WINDOW_NORMAL); //create a window
 
-	/// Apply the Hough Transform to find the circles
-	int Filter = 100;
-	do {
-		HoughCircles(Blur, circles, HOUGH_GRADIENT, 1, 10, 50, Filter, 120, 350); //(140 for clay12)
-		Filter--;
-		cout << Filter;
+	int frame_width = static_cast<int>(cap.get(CAP_PROP_FRAME_WIDTH)); //get the width of frames of the video
+	int frame_height = static_cast<int>(cap.get(CAP_PROP_FRAME_HEIGHT)); //get the height of frames of the video
 
-		if (circles.size() >= 2) {
-			for (size_t i = 0; i < circles.size()-1; i++) {
+	Size frame_size(frame_width, frame_height);
+	int frames_per_second = 10;
 
-				int radius1 = cvRound(circles[i][2]);
+	//Create and initialize the VideoWriter object 
+	VideoWriter oVideoWriter("C:\\Users\\Zoltán\\Desktop\\pipe.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), frames_per_second, frame_size, true);
 
-				for (size_t j = i+1; j < circles.size(); j++) {
 
-					//Point center1(cvRound(circles[i][0]), cvRound(circles[i][1]));
+	while (true)
+	{
+		Mat frame;
+		bool bSuccess = cap.read(frame); // read a new frame from video 
 
-					//Point center2(cvRound(circles[j][0]), cvRound(circles[j][1]));
-					int radius2 = cvRound(circles[j][2]);
-					int diff = abs(radius1 - radius2);
-					cout << diff;
-					if (match[2] > diff || match[2] == -1) {
-						match[0] = i;
-						match[1] = j;
-						match[2] = diff;
-					}
-					cout << match;
+		//Breaking the while loop at the end of the video
+		if (bSuccess == false)
+		{
+			cout << "Found the end of the video" << endl;
+			break;
+		}
+
+
+
+
+		//medianBlur(frame, Blur, 3);
+		inRange(frame, Scalar(170, 170, 170), Scalar(255, 255, 255), bin);
+
+		Mat elem = getStructuringElement(MORPH_ELLIPSE, Size(7, 7));
+		morphologyEx(bin, morph1, MORPH_CLOSE, elem); //Closes holes in objects
+				
+		//medianBlur(img, Blur, 5);
+		//imshow("Blur", Blur);
+
+		//Find objects:
+
+		vector<vector<Point>> contours; // a vector of vectors holding points used to save the contours
+		vector<Vec4i> hier; // a vector of vectors holding 4 intigers used to save hierarchy data
+
+		findContours(morph1, contours, hier, RETR_CCOMP, CHAIN_APPROX_NONE);
+		//drawContours(contourImg, contours, -1, Scalar(0, 0, 255), 3, 16, hier, 1); //draw the contours on a seperate image
+
+
+		vector<features> featVec; // vector to hold every feature of every object
+
+		//Loop through all external contours (hierarchy = -1)
+		//Save contour index and features in vector featVec
+
+		for (int i = 0; i < contours.size(); i++) {		//loop through the objects and save all features
+			if (hier[i][3] == -1 && contourArea(contours[i]) > 6500) {
+				Point2f center;
+				float radius;
+				minEnclosingCircle(contours[i], center, radius);
+				Scalar color = Scalar(0, 0, 255);
+				cout << radius;
+				if (radius > 220) {
+					circle(frame, center, radius, color, 2);
 				}
 			}
 		}
 
-	} while (circles.size() < 2 || match[2] > 15);
-	
+
+		//Loop through contours saved in vector. Sort based on feature values manually defined.
+
+		
+
+		oVideoWriter.write(frame);
+
+		//show the frame in the created window
+		imshow(window_name, frame);
+
+
+		if (waitKey(10) == 27)
+		{
+			cout << "Esc key is pressed by user. Stoppig the video" << endl;
+			break;
+		}
+		
+	}
+
+	oVideoWriter.release();
 
 	/// Draw the circles detected
 	
-	for (size_t i = 0; i < circles.size(); i++) {
-		Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-		int radius = cvRound(circles[i][2]);
-		circle(OG, center, radius, Scalar(0, 255, 0), 2, 8, 0);
-	}
-	
-	int a = match[0];
-	int b = match[1];
 
-	Point center(cvRound(circles[a][0]), cvRound(circles[a][1]));
-	int radius = cvRound(circles[a][2]);
-	circle(OG, center, radius, Scalar(0, 0, 255), 2, 8, 0);
-	
-	Point center2(cvRound(circles[b][0]), cvRound(circles[b][1]));
-	int radius2 = cvRound(circles[b][2]);
-	circle(OG, center2, radius2, Scalar(0, 0, 255), 2, 8, 0);
-	
+
+
 	
 	// Show results:
 
-	imshow("OG", OG);
+	//imshow("OG", OG);
 	//imshow("Binary", bin);
 	//imshow("Morph1", morph1);
 	//imshow("Morph2", morph2);
 	//imshow("Contours", contourImg);
 	//imshow("Objects result", objects);
-	imshow("out", Blur);
+	//imshow("out", Blur);
 	//Save result as a new image file
 
 	/*String newPath = ImgPath;
