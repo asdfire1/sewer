@@ -13,12 +13,15 @@ struct features //crate data structure for the features
 	int area;
 };
 
+Point2f center;
+float radius;
+
 
 void main()
 {
 	// Load colour image and create empty images for output:	
 
-	String ImgPath = "C:\\Users\\Zoltán\\Desktop\\nothing.png"; 
+	String ImgPath = "C:\\Users\\Zoltán\\Desktop\\Pipes\\11.png"; 
 
 	Mat OG = imread(ImgPath);
 	Mat img = imread(ImgPath, IMREAD_GRAYSCALE); //Load the image in grayscale
@@ -28,7 +31,7 @@ void main()
 	Mat contourImg = Mat(img.size(), CV_8U);
 	Mat Blur = Mat(img.size(), CV_8U);
 
-	VideoCapture cap("C:\\Users\\Zoltán\\Desktop\\pipe.mp4");
+	VideoCapture cap("C:\\Users\\Zoltán\\Desktop\\Pipes\\pipe.mp4");
 
 	//Uncomment the following line if you want to start the video in the middle
 	//cap.set(CAP_PROP_POS_MSEC, 300); 
@@ -48,7 +51,7 @@ void main()
 	int frames_per_second = 10;
 
 	//Create and initialize the VideoWriter object 
-	VideoWriter oVideoWriter("C:\\Users\\Zoltán\\Desktop\\pipe.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), frames_per_second, frame_size, true);
+	VideoWriter oVideoWriter("C:\\Users\\Zoltán\\Desktop\\Pipes\\pipe.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), frames_per_second, frame_size, true);
 
 
 	while (true)
@@ -67,9 +70,9 @@ void main()
 
 
 		//medianBlur(frame, Blur, 3);
-		inRange(frame, Scalar(170, 170, 170), Scalar(255, 255, 255), bin);
+		inRange(frame, Scalar(150, 150, 150), Scalar(255, 255, 255), bin);
 
-		Mat elem = getStructuringElement(MORPH_ELLIPSE, Size(7, 7));
+		Mat elem = getStructuringElement(MORPH_ELLIPSE, Size(11, 11));
 		morphologyEx(bin, morph1, MORPH_CLOSE, elem); //Closes holes in objects
 				
 		//medianBlur(img, Blur, 5);
@@ -90,20 +93,21 @@ void main()
 		//Save contour index and features in vector featVec
 
 		for (int i = 0; i < contours.size(); i++) {		//loop through the objects and save all features
-			if (hier[i][3] == -1 && contourArea(contours[i]) > 6500) {
-				Point2f center;
-				float radius;
+			if (hier[i][3] == -1 && contourArea(contours[i]) > 6800) {
+				
 				minEnclosingCircle(contours[i], center, radius);
-				Scalar color = Scalar(0, 0, 255);
-				cout << radius;
-				if (radius > 220) {
+				float diff = abs(frame_width / 2 - center.x);
+				if (radius > 220 && diff<30) {
+					Scalar color = Scalar(0, 0, 255);
+					string StrArea = to_string(contourArea(contours[i]));
+					string StrRadius = to_string(radius);
+					putText(frame, StrArea, Point(20,150), FONT_HERSHEY_PLAIN, 1, color, 2);
+					putText(frame, StrRadius, Point(20, 200), FONT_HERSHEY_PLAIN, 1, color, 2);
 					circle(frame, center, radius, color, 2);
+					circle(frame, center, 1, color, 5);
 				}
 			}
 		}
-
-
-		//Loop through contours saved in vector. Sort based on feature values manually defined.
 
 		
 
@@ -111,6 +115,8 @@ void main()
 
 		//show the frame in the created window
 		imshow(window_name, frame);
+
+		imshow("Morph1", morph1);
 
 
 		if (waitKey(10) == 27)
