@@ -105,6 +105,7 @@ void main()
 					putText(frame, StrRadius, Point(20, 200), FONT_HERSHEY_PLAIN, 1, color, 2);
 					circle(frame, center, radius, color, 2);
 					circle(frame, center, 1, color, 5);
+					circle(frame, Point(frame_width / 2, frame_height / 2), 1, Scalar(255, 0, 0), 5);
 				}
 			}
 		}
