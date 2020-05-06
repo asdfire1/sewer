@@ -64,12 +64,12 @@ void main()
 	VideoWriter oVideoWriter("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipes.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), frames_per_second, frame_size, true);
 
 
-	Scalar color = Scalar(255, 128, 187);
+	Scalar color = Scalar(255, 100, 0);
 	Point2f center;
 	float radius;
 	int countdown = 0;
 	vector<float> gs;
-
+	string objectClass = "";
 
 	while (true)
 	{
@@ -129,31 +129,40 @@ void main()
 
 					//rectangle(frame, rect, Scalar(0, 255, 0), 1);
 					//circle(frame, (rect.tl() + rect.br()) / 2, 1, Scalar(0, 255, 0), 5);
-					if (countdown <= 0) {
-						cout << "new object" << endl;					
+					if (gs.size() == 0) {
+						cout << "new object" << endl;
 					}
 					gs.push_back (gValue);
 					cout << gs.size();
 					
 				}
-				
+								
 				countdown = 5;
 			}
 		}
 
-		if (countdown == 0) {
+		if (countdown == 0 && gs.size() > 0) {
 			cout << "median: " << median(gs) << endl;
+			if (median(gs) > 0.28) {
+				objectClass = "fs2";
+			}
+			else if (median(gs) > 0.18){
+				objectClass = "fs1";
+			}
+			else {
+				objectClass = "0";
+			}
 			gs.clear();
 		}
 		countdown--;
-
+		putText(frame, objectClass, Point(20, 250), FONT_HERSHEY_PLAIN, 2, color, 2);
 
 		oVideoWriter.write(frame);
 
 		//show the frame in the created window
 		imshow(window_name, frame);
 
-		//imshow("Morph1", morph1);
+		imshow("Morph1", morph1);
 
 
 		if (waitKey(10) == 27)
