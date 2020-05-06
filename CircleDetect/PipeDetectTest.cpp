@@ -7,30 +7,33 @@
 using namespace cv;
 using namespace std;
 
-struct features //crate data structure for the features
-{
-	int index;
-	int area;
-};
 
-Point2f center;
-float radius;
+double median(vector<float> scores)
+{
+	size_t size = scores.size();
+
+	if (size == 0)
+	{
+		return -1;  // Undefined, really.
+	}
+	else
+	{
+		sort(scores.begin(), scores.end());
+		if (size % 2 == 0)
+		{
+			return (scores[size / 2 - 1] + scores[size / 2]) / 2;
+		}
+		else
+		{
+			return scores[size / 2];
+		}
+	}
+}
+
 
 
 void main()
 {
-	// Load colour image and create empty images for output:	
-
-	String ImgPath = "C:\\Users\\nxtzo\\Desktop\\Pipes\\12.png";
-
-	Mat OG = imread(ImgPath);
-	Mat img = imread(ImgPath, IMREAD_GRAYSCALE); //Load the image in grayscale
-	Mat bin = Mat(img.size(), CV_8U);
-	Mat morph1 = Mat(img.size(), CV_8U);
-	Mat morph2 = Mat(img.size(), CV_8U);
-	Mat contourImg = Mat(img.size(), CV_8U);
-	Mat Blur = Mat(img.size(), CV_8U);
-
 	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipes.mp4");
 
 	//Uncomment the following line if you want to start the video in the middle
@@ -50,8 +53,22 @@ void main()
 	Size frame_size(frame_width, frame_height);
 	int frames_per_second = 10;
 
+	Mat bin = Mat(frame_size, CV_8U);
+	Mat morph1 = Mat(frame_size, CV_8U);
+	Mat morph2 = Mat(frame_size, CV_8U);
+	Mat contourImg = Mat(frame_size, CV_8U);
+	Mat Blur = Mat(frame_size, CV_8U);
+
+
 	//Create and initialize the VideoWriter object 
 	VideoWriter oVideoWriter("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipes.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), frames_per_second, frame_size, true);
+
+
+	Scalar color = Scalar(255, 128, 187);
+	Point2f center;
+	float radius;
+	int countdown = 0;
+	vector<float> gs;
 
 
 	while (true)
@@ -66,17 +83,11 @@ void main()
 			break;
 		}
 
-
-
-
 		//medianBlur(frame, Blur, 3);
 		inRange(frame, Scalar(150, 150, 150), Scalar(255, 255, 255), bin);
 
 		Mat elem = getStructuringElement(MORPH_ELLIPSE, Size(11, 11));
 		morphologyEx(bin, morph1, MORPH_CLOSE, elem); //Closes holes in objects
-
-		//medianBlur(img, Blur, 5);
-		//imshow("Blur", Blur);
 
 		//Find objects:
 
@@ -84,40 +95,57 @@ void main()
 		vector<Vec4i> hier; // a vector of vectors holding 4 intigers used to save hierarchy data
 
 		findContours(morph1, contours, hier, RETR_CCOMP, CHAIN_APPROX_NONE);
-		//drawContours(contourImg, contours, -1, Scalar(0, 0, 255), 3, 16, hier, 1); //draw the contours on a seperate image
-
-
-		vector<features> featVec; // vector to hold every feature of every object
+		
 
 		//Loop through all external contours (hierarchy = -1)
-		//Save contour index and features in vector featVec
+		
 
-		for (int i = 0; i < contours.size(); i++) {        //loop through the objects and save all features
-			if (hier[i][3] == -1 && contourArea(contours[i]) > 6800) {
+		for (int i = 0; i < contours.size(); i++) {  
+
+			if (hier[i][3] == -1 && contourArea(contours[i]) > 7000) {
 
 				minEnclosingCircle(contours[i], center, radius);
-				float diff = abs(frame_width / 2 - center.x);
-				if (radius > 220 && diff < 30) {
-					string gvalue = to_string(contourArea(contours[i]) / (radius * radius));
-					Scalar color = Scalar(255, 128, 187);
+				float diffx = abs(frame_width / 2 - center.x);
+				float diffy = abs(frame_height / 2 - center.y);
+
+				if (radius > 215 && diffx < 30 && diffy < 55) {
+
+					//Rect rect = boundingRect(contours[i]);
+					float gValue = contourArea(contours[i]) / (radius * radius);
+					string gvalue = to_string(gValue);
 					string StrArea = to_string(contourArea(contours[i]));
 					string StrRadius = to_string(radius);
-					Rect rect = boundingRect(contours[i]);
-					string StrAreaRect = to_string(rect.area());
-					putText(frame, StrArea, Point(20, 150), FONT_HERSHEY_PLAIN, 1, color, 2);
-					putText(frame, StrRadius, Point(20, 200), FONT_HERSHEY_PLAIN, 1, color, 2);
-					putText(frame, StrAreaRect, Point(20, 250), FONT_HERSHEY_PLAIN, 1, color, 2);
-					putText(frame, gvalue, Point(20, 300), FONT_HERSHEY_PLAIN, 1, color, 2);
-					circle(frame, center, radius, color, 2);
-					circle(frame, center, 1, color, 5);
-					circle(frame, Point(frame_width / 2, frame_height / 2), 1, Scalar(255, 0, 0), 5);
+					//string StrAreaRect = to_string(rect.area());
 
-					rectangle(frame, rect, Scalar(0, 255, 0), 1);
-					circle(frame, (rect.tl() + rect.br()) / 2, 1, Scalar(0, 255, 0), 5);
+					//putText(frame, StrArea, Point(20, 150), FONT_HERSHEY_PLAIN, 1, color, 2);
+					//putText(frame, StrRadius, Point(20, 200), FONT_HERSHEY_PLAIN, 1, color, 2);
+					//putText(frame, StrAreaRect, Point(20, 250), FONT_HERSHEY_PLAIN, 1, color, 2);
+					putText(frame, gvalue, Point(20, 300), FONT_HERSHEY_PLAIN, 1, color, 2);
+
+					circle(frame, center, radius, color, 2);
+					//circle(frame, center, 1, color, 5);
+
+					//circle(frame, Point(frame_width / 2, frame_height / 2), 1, Scalar(255, 0, 0), 5);
+
+					//rectangle(frame, rect, Scalar(0, 255, 0), 1);
+					//circle(frame, (rect.tl() + rect.br()) / 2, 1, Scalar(0, 255, 0), 5);
+					if (countdown <= 0) {
+						cout << "new object" << endl;					
+					}
+					gs.push_back (gValue);
+					cout << gs.size();
+					
 				}
+				
+				countdown = 5;
 			}
 		}
 
+		if (countdown == 0) {
+			cout << "median: " << median(gs) << endl;
+			gs.clear();
+		}
+		countdown--;
 
 
 		oVideoWriter.write(frame);
