@@ -21,7 +21,7 @@ void main()
 {
 	// Load colour image and create empty images for output:	
 
-	String ImgPath = "C:\\Users\\Zoltán\\Desktop\\Pipes\\11.png"; 
+	String ImgPath = "C:\\Users\\Zoltán\\Desktop\\Pipes\\11.png";
 
 	Mat OG = imread(ImgPath);
 	Mat img = imread(ImgPath, IMREAD_GRAYSCALE); //Load the image in grayscale
@@ -74,7 +74,7 @@ void main()
 
 		Mat elem = getStructuringElement(MORPH_ELLIPSE, Size(11, 11));
 		morphologyEx(bin, morph1, MORPH_CLOSE, elem); //Closes holes in objects
-				
+
 		//medianBlur(img, Blur, 5);
 		//imshow("Blur", Blur);
 
@@ -118,7 +118,7 @@ void main()
 			}
 		}
 
-		
+
 
 		oVideoWriter.write(frame);
 
@@ -133,17 +133,17 @@ void main()
 			cout << "Esc key is pressed by user. Stoppig the video" << endl;
 			break;
 		}
-		
+
 	}
 
 	oVideoWriter.release();
 
 	/// Draw the circles detected
-	
 
 
 
-	
+
+
 	// Show results:
 
 	//imshow("OG", OG);
