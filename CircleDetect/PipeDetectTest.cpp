@@ -31,7 +31,7 @@ void main()
 	Mat contourImg = Mat(img.size(), CV_8U);
 	Mat Blur = Mat(img.size(), CV_8U);
 
-	VideoCapture cap("C:\\Users\\Zoltán\\Desktop\\Pipes\\pipe.mp4");
+	VideoCapture cap("C:\\Users\\Zoltán\\Desktop\\Pipes\\pipes.mp4");
 
 	//Uncomment the following line if you want to start the video in the middle
 	//cap.set(CAP_PROP_POS_MSEC, 300); 
@@ -51,7 +51,7 @@ void main()
 	int frames_per_second = 10;
 
 	//Create and initialize the VideoWriter object 
-	VideoWriter oVideoWriter("C:\\Users\\Zoltán\\Desktop\\Pipes\\pipe.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), frames_per_second, frame_size, true);
+	VideoWriter oVideoWriter("C:\\Users\\Zoltán\\Desktop\\Pipes\\pipes.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), frames_per_second, frame_size, true);
 
 
 	while (true)
@@ -101,11 +101,17 @@ void main()
 					Scalar color = Scalar(0, 0, 255);
 					string StrArea = to_string(contourArea(contours[i]));
 					string StrRadius = to_string(radius);
+					Rect rect = boundingRect(contours[i]);
+					string StrAreaRect = to_string(rect.area());
 					putText(frame, StrArea, Point(20,150), FONT_HERSHEY_PLAIN, 1, color, 2);
 					putText(frame, StrRadius, Point(20, 200), FONT_HERSHEY_PLAIN, 1, color, 2);
+					putText(frame, StrAreaRect, Point(20, 250), FONT_HERSHEY_PLAIN, 1, color, 2);
 					circle(frame, center, radius, color, 2);
 					circle(frame, center, 1, color, 5);
 					circle(frame, Point(frame_width / 2, frame_height / 2), 1, Scalar(255, 0, 0), 5);
+					
+					rectangle(frame, rect, Scalar(0, 255, 0), 1);
+					circle(frame, (rect.tl() + rect.br())/2, 1, Scalar(0, 255, 0), 5);
 				}
 			}
 		}
