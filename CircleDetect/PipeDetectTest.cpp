@@ -21,7 +21,7 @@ void main()
 {
 	// Load colour image and create empty images for output:	
 
-	String ImgPath = "C:\\Users\\Zoltán\\Desktop\\Pipes\\11.png";
+	String ImgPath = "C:\\Users\\nxtzo\\Desktop\\Pipes\\12.png";
 
 	Mat OG = imread(ImgPath);
 	Mat img = imread(ImgPath, IMREAD_GRAYSCALE); //Load the image in grayscale
@@ -31,7 +31,7 @@ void main()
 	Mat contourImg = Mat(img.size(), CV_8U);
 	Mat Blur = Mat(img.size(), CV_8U);
 
-	VideoCapture cap("C:\\Users\\Zoltán\\Desktop\\Pipes\\pipes.mp4");
+	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipes.mp4");
 
 	//Uncomment the following line if you want to start the video in the middle
 	//cap.set(CAP_PROP_POS_MSEC, 300); 
@@ -51,7 +51,7 @@ void main()
 	int frames_per_second = 10;
 
 	//Create and initialize the VideoWriter object 
-	VideoWriter oVideoWriter("C:\\Users\\Zoltán\\Desktop\\Pipes\\pipes.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), frames_per_second, frame_size, true);
+	VideoWriter oVideoWriter("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipes.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), frames_per_second, frame_size, true);
 
 
 	while (true)
