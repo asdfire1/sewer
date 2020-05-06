@@ -92,26 +92,28 @@ void main()
 		//Loop through all external contours (hierarchy = -1)
 		//Save contour index and features in vector featVec
 
-		for (int i = 0; i < contours.size(); i++) {		//loop through the objects and save all features
+		for (int i = 0; i < contours.size(); i++) {        //loop through the objects and save all features
 			if (hier[i][3] == -1 && contourArea(contours[i]) > 6800) {
-				
+
 				minEnclosingCircle(contours[i], center, radius);
 				float diff = abs(frame_width / 2 - center.x);
-				if (radius > 220 && diff<30) {
-					Scalar color = Scalar(0, 0, 255);
+				if (radius > 220 && diff < 30) {
+					string gvalue = to_string(contourArea(contours[i]) / (radius * radius));
+					Scalar color = Scalar(255, 128, 187);
 					string StrArea = to_string(contourArea(contours[i]));
 					string StrRadius = to_string(radius);
 					Rect rect = boundingRect(contours[i]);
 					string StrAreaRect = to_string(rect.area());
-					putText(frame, StrArea, Point(20,150), FONT_HERSHEY_PLAIN, 1, color, 2);
+					putText(frame, StrArea, Point(20, 150), FONT_HERSHEY_PLAIN, 1, color, 2);
 					putText(frame, StrRadius, Point(20, 200), FONT_HERSHEY_PLAIN, 1, color, 2);
 					putText(frame, StrAreaRect, Point(20, 250), FONT_HERSHEY_PLAIN, 1, color, 2);
+					putText(frame, gvalue, Point(20, 300), FONT_HERSHEY_PLAIN, 1, color, 2);
 					circle(frame, center, radius, color, 2);
 					circle(frame, center, 1, color, 5);
 					circle(frame, Point(frame_width / 2, frame_height / 2), 1, Scalar(255, 0, 0), 5);
-					
+
 					rectangle(frame, rect, Scalar(0, 255, 0), 1);
-					circle(frame, (rect.tl() + rect.br())/2, 1, Scalar(0, 255, 0), 5);
+					circle(frame, (rect.tl() + rect.br()) / 2, 1, Scalar(0, 255, 0), 5);
 				}
 			}
 		}
@@ -123,7 +125,7 @@ void main()
 		//show the frame in the created window
 		imshow(window_name, frame);
 
-		imshow("Morph1", morph1);
+		//imshow("Morph1", morph1);
 
 
 		if (waitKey(10) == 27)
