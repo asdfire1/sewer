@@ -42,7 +42,7 @@ void main()
 	
 	outputfile << "Seconds, Gs" << endl;
 
-	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipes.mp4");
+	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipe03.mp4");
 
 	//Uncomment the following line if you want to start the video in the middle
 	//cap.set(CAP_PROP_POS_MSEC, 300); 
@@ -85,7 +85,6 @@ void main()
 		Mat frame;
 		bool bSuccess = cap.read(frame); // read a new frame from video 
 		frames++;
-
 		//Breaking the while loop at the end of the video
 		if (bSuccess == false)
 		{
@@ -94,9 +93,9 @@ void main()
 		}
 
 		//medianBlur(frame, Blur, 3);
-		inRange(frame, Scalar(150, 150, 150), Scalar(255, 255, 255), bin);
+		inRange(frame, Scalar(155, 155, 155), Scalar(255, 255, 255), bin);
 
-		Mat elem = getStructuringElement(MORPH_ELLIPSE, Size(11, 11));
+		Mat elem = getStructuringElement(MORPH_ELLIPSE, Size(15, 15));
 		morphologyEx(bin, morph1, MORPH_CLOSE, elem); //Closes holes in objects
 
 		//Find objects:
@@ -112,13 +111,13 @@ void main()
 
 		for (int i = 0; i < contours.size(); i++) {  
 
-			if (hier[i][3] == -1 && contourArea(contours[i]) > 7000) {
+			if (hier[i][3] == -1 && contourArea(contours[i]) > 6000) {
 
 				minEnclosingCircle(contours[i], center, radius);
 				float diffx = abs(frame_width / 2 - center.x);
 				float diffy = abs(frame_height / 2 - center.y);
 
-				if (radius > 215 && diffx < 30 && diffy < 55) {
+				if (radius > 170 && diffx < 30 && diffy < 70) {
 
 					//Rect rect = boundingRect(contours[i]);
 					float gValue = contourArea(contours[i]) / (radius * radius);
@@ -149,16 +148,16 @@ void main()
 					
 				}
 								
-				countdown = 5;
+				countdown = 3;
 			}
 		}
 
 		if (countdown == 0 && gs.size() > 0) {
 			cout << "median: " << median(gs) << endl;
-			if (median(gs) > 0.28) {
+			if (median(gs) > 0.21) {
 				objectClass = "fs2";
 			}
-			else if (median(gs) > 0.18){
+			else if (median(gs) > 0.11){
 				objectClass = "fs1";
 			}
 			else {
@@ -168,7 +167,7 @@ void main()
 			gs.clear();
 		}
 
-		if (countdown < -10) {
+		if (countdown < -7) {
 			objectClass = "";
 		}
 
@@ -180,7 +179,7 @@ void main()
 		//show the frame in the created window
 		imshow(window_name, frame);
 
-		//imshow("Morph1", morph1);
+		imshow("Morph1", morph1);
 
 
 		if (waitKey(10) == 27)
