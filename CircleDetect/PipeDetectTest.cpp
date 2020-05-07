@@ -3,6 +3,7 @@
 #include <opencv2/imgproc.hpp>
 #include <iostream>
 #include <string>
+#include <fstream>
 
 using namespace cv;
 using namespace std;
@@ -30,10 +31,17 @@ double median(vector<float> scores)
 	}
 }
 
+ofstream outputfile;
+
 
 
 void main()
 {
+	
+	outputfile.open("C:\\Users\\nxtzo\\Desktop\\Pipes\\data.txt", ios::app);
+	
+	outputfile << "Seconds, Gs" << endl;
+
 	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipes.mp4");
 
 	//Uncomment the following line if you want to start the video in the middle
@@ -51,7 +59,7 @@ void main()
 	int frame_height = static_cast<int>(cap.get(CAP_PROP_FRAME_HEIGHT)); //get the height of frames of the video
 
 	Size frame_size(frame_width, frame_height);
-	int frames_per_second = 10;
+	int frames_per_second = 25;
 
 	Mat bin = Mat(frame_size, CV_8U);
 	Mat morph1 = Mat(frame_size, CV_8U);
@@ -70,11 +78,13 @@ void main()
 	int countdown = 0;
 	vector<float> gs;
 	string objectClass = "";
+	double frames = 0;
 
 	while (true)
 	{
 		Mat frame;
 		bool bSuccess = cap.read(frame); // read a new frame from video 
+		frames++;
 
 		//Breaking the while loop at the end of the video
 		if (bSuccess == false)
@@ -131,6 +141,8 @@ void main()
 					//circle(frame, (rect.tl() + rect.br()) / 2, 1, Scalar(0, 255, 0), 5);
 					if (gs.size() == 0) {
 						cout << "new object" << endl;
+						float seconds = frames / frames_per_second;
+						outputfile << seconds << ", " << gValue << ", ";
 					}
 					gs.push_back (gValue);
 					cout << gs.size();
@@ -152,8 +164,14 @@ void main()
 			else {
 				objectClass = "0";
 			}
+			outputfile << objectClass << endl;
 			gs.clear();
 		}
+
+		if (countdown < -10) {
+			objectClass = "";
+		}
+
 		countdown--;
 		putText(frame, objectClass, Point(20, 250), FONT_HERSHEY_PLAIN, 2, color, 2);
 
@@ -162,7 +180,7 @@ void main()
 		//show the frame in the created window
 		imshow(window_name, frame);
 
-		imshow("Morph1", morph1);
+		//imshow("Morph1", morph1);
 
 
 		if (waitKey(10) == 27)
