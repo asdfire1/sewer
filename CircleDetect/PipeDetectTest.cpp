@@ -40,9 +40,9 @@ void main()
 	
 	outputfile.open("C:\\Users\\nxtzo\\Desktop\\Pipes\\data.txt", ios::app);
 	
-	outputfile << "Seconds, Gs" << endl;
+	outputfile << "Seconds, GValue, Class" << endl;
 
-	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipe03.mp4");
+	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipe03sc.mp4");
 
 	//Uncomment the following line if you want to start the video in the middle
 	//cap.set(CAP_PROP_POS_MSEC, 300); 
@@ -69,7 +69,7 @@ void main()
 
 
 	//Create and initialize the VideoWriter object 
-	VideoWriter oVideoWriter("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipes.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), frames_per_second, frame_size, true);
+	//VideoWriter oVideoWriter("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipes.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), frames_per_second, frame_size, true);
 
 
 	Scalar color = Scalar(255, 100, 0);
@@ -79,6 +79,7 @@ void main()
 	vector<float> gs;
 	string objectClass = "";
 	double frames = 0;
+	float gValue = 0;
 
 	while (true)
 	{
@@ -92,18 +93,24 @@ void main()
 			break;
 		}
 
-		//medianBlur(frame, Blur, 3);
-		inRange(frame, Scalar(155, 155, 155), Scalar(255, 255, 255), bin);
+		//medianBlur(frame, Blur, 5);
+		inRange(frame, Scalar(120, 120, 120), Scalar(255, 255, 255), bin);
 
-		Mat elem = getStructuringElement(MORPH_ELLIPSE, Size(15, 15));
-		morphologyEx(bin, morph1, MORPH_CLOSE, elem); //Closes holes in objects
+		Mat elem3 = getStructuringElement(MORPH_ELLIPSE, Size(3, 3));
+		morphologyEx(bin, bin, MORPH_OPEN, elem3);
+		//Mat elem = getStructuringElement(MORPH_ELLIPSE, Size(3, 3));
+		//morphologyEx(bin, bin, MORPH_DILATE, elem);
+		Mat elem2 = getStructuringElement(MORPH_ELLIPSE, Size(21, 21));
+		morphologyEx(bin, bin, MORPH_CLOSE, elem2);
+		
+
 
 		//Find objects:
 
 		vector<vector<Point>> contours; // a vector of vectors holding points used to save the contours
 		vector<Vec4i> hier; // a vector of vectors holding 4 intigers used to save hierarchy data
 
-		findContours(morph1, contours, hier, RETR_CCOMP, CHAIN_APPROX_NONE);
+		findContours(bin, contours, hier, RETR_CCOMP, CHAIN_APPROX_NONE);
 		
 
 		//Loop through all external contours (hierarchy = -1)
@@ -111,27 +118,27 @@ void main()
 
 		for (int i = 0; i < contours.size(); i++) {  
 
-			if (hier[i][3] == -1 && contourArea(contours[i]) > 6000) {
+			if (hier[i][3] == -1 && contourArea(contours[i]) > 4000) {
 
 				minEnclosingCircle(contours[i], center, radius);
 				float diffx = abs(frame_width / 2 - center.x);
 				float diffy = abs(frame_height / 2 - center.y);
 
-				if (radius > 170 && diffx < 30 && diffy < 70) {
+				if (radius > 175 && diffx < 50 && diffy < 70) {
 
 					//Rect rect = boundingRect(contours[i]);
-					float gValue = contourArea(contours[i]) / (radius * radius);
-					string gvalue = to_string(gValue);
-					string StrArea = to_string(contourArea(contours[i]));
-					string StrRadius = to_string(radius);
+					gValue = contourArea(contours[i]) / (radius * radius);
+					//string gvalue = to_string(gValue);
+					//string StrArea = to_string(contourArea(contours[i]));
+					//string StrRadius = to_string(radius);
 					//string StrAreaRect = to_string(rect.area());
 
 					//putText(frame, StrArea, Point(20, 150), FONT_HERSHEY_PLAIN, 1, color, 2);
 					//putText(frame, StrRadius, Point(20, 200), FONT_HERSHEY_PLAIN, 1, color, 2);
 					//putText(frame, StrAreaRect, Point(20, 250), FONT_HERSHEY_PLAIN, 1, color, 2);
-					putText(frame, gvalue, Point(20, 300), FONT_HERSHEY_PLAIN, 1, color, 2);
+					//putText(frame, gvalue, Point(20, 300), FONT_HERSHEY_PLAIN, 1, color, 2);
 
-					circle(frame, center, radius, color, 2);
+					//circle(frame, center, radius, color, 2);
 					//circle(frame, center, 1, color, 5);
 
 					//circle(frame, Point(frame_width / 2, frame_height / 2), 1, Scalar(255, 0, 0), 5);
@@ -141,29 +148,29 @@ void main()
 					if (gs.size() == 0) {
 						cout << "new object" << endl;
 						float seconds = frames / frames_per_second;
-						outputfile << seconds << ", " << gValue << ", ";
+						outputfile << seconds << ", " ;
 					}
 					gs.push_back (gValue);
 					cout << gs.size();
 					
 				}
 								
-				countdown = 3;
+				countdown = 5;
 			}
 		}
 
 		if (countdown == 0 && gs.size() > 0) {
 			cout << "median: " << median(gs) << endl;
-			if (median(gs) > 0.21) {
+			if (median(gs) > 0.22) {
 				objectClass = "fs2";
 			}
-			else if (median(gs) > 0.11){
+			else if (median(gs) > 0.07){
 				objectClass = "fs1";
 			}
 			else {
 				objectClass = "0";
 			}
-			outputfile << objectClass << endl;
+			outputfile << median(gs) << ", " << objectClass <<  endl;
 			gs.clear();
 		}
 
@@ -172,14 +179,14 @@ void main()
 		}
 
 		countdown--;
-		putText(frame, objectClass, Point(20, 250), FONT_HERSHEY_PLAIN, 2, color, 2);
+		//putText(frame, objectClass, Point(20, 250), FONT_HERSHEY_PLAIN, 2, color, 2);
 
-		oVideoWriter.write(frame);
+		//oVideoWriter.write(frame);
 
 		//show the frame in the created window
 		imshow(window_name, frame);
 
-		imshow("Morph1", morph1);
+		imshow("bin", bin);
 
 
 		if (waitKey(10) == 27)
@@ -190,7 +197,7 @@ void main()
 
 	}
 
-	oVideoWriter.release();
+	//oVideoWriter.release();
 
 	/// Draw the circles detected
 
