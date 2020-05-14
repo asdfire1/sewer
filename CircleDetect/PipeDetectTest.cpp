@@ -42,7 +42,7 @@ void main()
 	
 	outputfile << "Seconds, GValue, Class" << endl;
 
-	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipe03sc.mp4");
+	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipe02sc.mp4");
 
 	//Uncomment the following line if you want to start the video in the middle
 	//cap.set(CAP_PROP_POS_MSEC, 300); 
@@ -100,13 +100,14 @@ void main()
 		morphologyEx(bin, bin, MORPH_OPEN, elem3);
 		//Mat elem = getStructuringElement(MORPH_ELLIPSE, Size(3, 3));
 		//morphologyEx(bin, bin, MORPH_DILATE, elem);
-		Mat elem2 = getStructuringElement(MORPH_ELLIPSE, Size(21, 21));
+		Mat elem2 = getStructuringElement(MORPH_ELLIPSE, Size(13, 13));
 		morphologyEx(bin, bin, MORPH_CLOSE, elem2);
 		
 
 
 		//Find objects:
 
+		
 		vector<vector<Point>> contours; // a vector of vectors holding points used to save the contours
 		vector<Vec4i> hier; // a vector of vectors holding 4 intigers used to save hierarchy data
 
@@ -115,7 +116,7 @@ void main()
 
 		//Loop through all external contours (hierarchy = -1)
 		
-
+		
 		for (int i = 0; i < contours.size(); i++) {  
 
 			if (hier[i][3] == -1 && contourArea(contours[i]) > 4000) {
@@ -128,6 +129,7 @@ void main()
 
 					//Rect rect = boundingRect(contours[i]);
 					gValue = contourArea(contours[i]) / (radius * radius);
+
 					//string gvalue = to_string(gValue);
 					//string StrArea = to_string(contourArea(contours[i]));
 					//string StrRadius = to_string(radius);
@@ -177,11 +179,12 @@ void main()
 		if (countdown < -7) {
 			objectClass = "";
 		}
-
+		
 		countdown--;
 		//putText(frame, objectClass, Point(20, 250), FONT_HERSHEY_PLAIN, 2, color, 2);
 
-		//oVideoWriter.write(frame);
+		//cvtColor(bin, bin, COLOR_GRAY2RGB);
+		//oVideoWriter.write(bin);
 
 		//show the frame in the created window
 		imshow(window_name, frame);
