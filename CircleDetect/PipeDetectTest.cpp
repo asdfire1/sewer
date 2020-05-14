@@ -31,6 +31,15 @@ double median(vector<float> scores)
 	}
 }
 
+float max(vector<float> inputvector) {
+	float a = 0;
+	for (int i = 0; i < inputvector.size(); i++) {
+		if (inputvector[i] > a)
+			a = inputvector[i];
+	}
+	return a;
+}
+
 ofstream outputfile;
 
 
@@ -42,7 +51,7 @@ void main()
 	
 	outputfile << "Seconds, GValue, Class" << endl;
 
-	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipe02sc.mp4");
+	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipe01sc.mp4");
 
 	//Uncomment the following line if you want to start the video in the middle
 	//cap.set(CAP_PROP_POS_MSEC, 300); 
@@ -94,13 +103,13 @@ void main()
 		}
 
 		//medianBlur(frame, Blur, 5);
-		inRange(frame, Scalar(120, 120, 120), Scalar(255, 255, 255), bin);
+		inRange(frame, Scalar(130, 130, 130), Scalar(255, 255, 255), bin);
 
 		Mat elem3 = getStructuringElement(MORPH_ELLIPSE, Size(3, 3));
 		morphologyEx(bin, bin, MORPH_OPEN, elem3);
 		//Mat elem = getStructuringElement(MORPH_ELLIPSE, Size(3, 3));
 		//morphologyEx(bin, bin, MORPH_DILATE, elem);
-		Mat elem2 = getStructuringElement(MORPH_ELLIPSE, Size(13, 13));
+		Mat elem2 = getStructuringElement(MORPH_ELLIPSE, Size(15, 15));
 		morphologyEx(bin, bin, MORPH_CLOSE, elem2);
 		
 
@@ -162,17 +171,17 @@ void main()
 		}
 
 		if (countdown == 0 && gs.size() > 0) {
-			cout << "median: " << median(gs) << endl;
-			if (median(gs) > 0.22) {
+			cout << "max: " << max(gs) << endl;
+			if (max(gs) > 0.22) {
 				objectClass = "fs2";
 			}
-			else if (median(gs) > 0.07){
+			else if (max(gs) > 0.06){
 				objectClass = "fs1";
 			}
 			else {
 				objectClass = "0";
 			}
-			outputfile << median(gs) << ", " << objectClass <<  endl;
+			outputfile << max(gs) << ", " << objectClass <<  endl;
 			gs.clear();
 		}
 
