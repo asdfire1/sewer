@@ -51,7 +51,7 @@ void main()
 	
 	outputfile << "Seconds, GValue, Class" << endl;
 
-	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipe01sc.mp4");
+	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipe05sc.mp4");
 
 	//Uncomment the following line if you want to start the video in the middle
 	//cap.set(CAP_PROP_POS_MSEC, 300); 
@@ -73,7 +73,7 @@ void main()
 	Mat bin = Mat(frame_size, CV_8U);
 	Mat morph1 = Mat(frame_size, CV_8U);
 	Mat morph2 = Mat(frame_size, CV_8U);
-	Mat contourImg = Mat(frame_size, CV_8U);
+	//Mat contourImg = Mat(frame_size, CV_8U);
 	Mat Blur = Mat(frame_size, CV_8U);
 
 
@@ -88,10 +88,14 @@ void main()
 	vector<float> gs;
 	string objectClass = "";
 	double frames = 0;
-	float gValue = 0;
+
+	float maxLenght = 0;
+
 
 	while (true)
 	{
+
+		Mat contourImg = Mat(frame_size, CV_8UC1, Scalar(0));
 		Mat frame;
 		bool bSuccess = cap.read(frame); // read a new frame from video 
 		frames++;
@@ -103,13 +107,13 @@ void main()
 		}
 
 		//medianBlur(frame, Blur, 5);
-		inRange(frame, Scalar(130, 130, 130), Scalar(255, 255, 255), bin);
+		inRange(frame, Scalar(120, 120, 120), Scalar(255, 255, 255), bin);
 
 		Mat elem3 = getStructuringElement(MORPH_ELLIPSE, Size(3, 3));
 		morphologyEx(bin, bin, MORPH_OPEN, elem3);
 		//Mat elem = getStructuringElement(MORPH_ELLIPSE, Size(3, 3));
 		//morphologyEx(bin, bin, MORPH_DILATE, elem);
-		Mat elem2 = getStructuringElement(MORPH_ELLIPSE, Size(15, 15));
+		Mat elem2 = getStructuringElement(MORPH_ELLIPSE, Size(9, 9));
 		morphologyEx(bin, bin, MORPH_CLOSE, elem2);
 		
 
@@ -118,9 +122,9 @@ void main()
 
 		
 		vector<vector<Point>> contours; // a vector of vectors holding points used to save the contours
-		vector<Vec4i> hier; // a vector of vectors holding 4 intigers used to save hierarchy data
+		//vector<Vec4i> hier; // a vector of vectors holding 4 intigers used to save hierarchy data
 
-		findContours(bin, contours, hier, RETR_CCOMP, CHAIN_APPROX_NONE);
+		findContours(bin, contours, RETR_EXTERNAL, CHAIN_APPROX_NONE);
 		
 
 		//Loop through all external contours (hierarchy = -1)
@@ -128,26 +132,77 @@ void main()
 		
 		for (int i = 0; i < contours.size(); i++) {  
 
-			if (hier[i][3] == -1 && contourArea(contours[i]) > 4000) {
+			if (contourArea(contours[i]) > 4000) {
 
+				drawContours(contourImg, contours, i, Scalar(255), FILLED, 8);
 				minEnclosingCircle(contours[i], center, radius);
 				float diffx = abs(frame_width / 2 - center.x);
 				float diffy = abs(frame_height / 2 - center.y);
 
-				if (radius > 175 && diffx < 50 && diffy < 70) {
+				if (radius > 185 && diffx < 50 && diffy < 70) {
 
-					//Rect rect = boundingRect(contours[i]);
-					gValue = contourArea(contours[i]) / (radius * radius);
+					for (int yRate = -1; yRate < 2; yRate++) {
+						cout << "yrate" << yRate << endl;
+						for (int xRate = -2; xRate < 2; xRate++) {
+							cout << "xrate" << xRate << endl;
+							Point Pixel = Point(center.x, center.y);
+								
+							Point firstPixel = Point(0, 0);
+							Point lastPixel = Point(0, 0);
+							
+							while(Pixel.x < frame_width && Pixel.x > 0 && Pixel.y < frame_height && Pixel.y > 0){
 
-					//string gvalue = to_string(gValue);
-					//string StrArea = to_string(contourArea(contours[i]));
-					//string StrRadius = to_string(radius);
-					//string StrAreaRect = to_string(rect.area());
+								int value = contourImg.at<uchar>(Pixel.y,Pixel.x);
 
-					//putText(frame, StrArea, Point(20, 150), FONT_HERSHEY_PLAIN, 1, color, 2);
-					//putText(frame, StrRadius, Point(20, 200), FONT_HERSHEY_PLAIN, 1, color, 2);
-					//putText(frame, StrAreaRect, Point(20, 250), FONT_HERSHEY_PLAIN, 1, color, 2);
-					//putText(frame, gvalue, Point(20, 300), FONT_HERSHEY_PLAIN, 1, color, 2);
+								
+
+								for (int x = abs(xRate); x > 0; x--) {
+									if (value == 255) {
+										if (firstPixel.x == 0 && firstPixel.y == 0) {
+											firstPixel = Pixel;
+										}
+										lastPixel = Pixel;
+									}
+									if (xRate > 0) {
+										Pixel.x++;
+									}
+									else {
+										Pixel.x--;
+									}
+								}
+								for (int y = abs(yRate); y > 0; y--) {
+
+									if (value == 255) {
+										if (firstPixel.x == 0 && firstPixel.y == 0) {
+											firstPixel = Pixel;
+										}
+										lastPixel = Pixel;
+									}
+									
+									if (yRate > 0) {
+										Pixel.y++;
+									}
+									else {
+										Pixel.y--;
+									}
+								}
+								//cout << Pixel.x << "   " << Pixel.y << "   " << value << endl;
+							}
+
+							float Lenght = norm(firstPixel - lastPixel);
+							if (Lenght > maxLenght) {
+								maxLenght = Lenght;
+							}
+
+							cout << Lenght << endl;
+
+						}
+						
+
+
+					}
+					
+					cout << "max lenghthth. The long boii: " << maxLenght << endl;
 
 					//circle(frame, center, radius, color, 2);
 					//circle(frame, center, 1, color, 5);
@@ -156,13 +211,7 @@ void main()
 
 					//rectangle(frame, rect, Scalar(0, 255, 0), 1);
 					//circle(frame, (rect.tl() + rect.br()) / 2, 1, Scalar(0, 255, 0), 5);
-					if (gs.size() == 0) {
-						cout << "new object" << endl;
-						float seconds = frames / frames_per_second;
-						outputfile << seconds << ", " ;
-					}
-					gs.push_back (gValue);
-					cout << gs.size();
+					
 					
 				}
 								
@@ -170,20 +219,7 @@ void main()
 			}
 		}
 
-		if (countdown == 0 && gs.size() > 0) {
-			cout << "max: " << max(gs) << endl;
-			if (max(gs) > 0.22) {
-				objectClass = "fs2";
-			}
-			else if (max(gs) > 0.06){
-				objectClass = "fs1";
-			}
-			else {
-				objectClass = "0";
-			}
-			outputfile << max(gs) << ", " << objectClass <<  endl;
-			gs.clear();
-		}
+		
 
 		if (countdown < -7) {
 			objectClass = "";
@@ -198,7 +234,7 @@ void main()
 		//show the frame in the created window
 		imshow(window_name, frame);
 
-		imshow("bin", bin);
+		imshow("bin", contourImg);
 
 
 		if (waitKey(10) == 27)
