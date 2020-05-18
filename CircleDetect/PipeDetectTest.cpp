@@ -89,7 +89,7 @@ void main()
 	string objectClass = "";
 	double frames = 0;
 
-	float maxLenght = 0;
+	
 
 
 	while (true)
@@ -129,7 +129,9 @@ void main()
 
 		//Loop through all external contours (hierarchy = -1)
 		
-		
+		float maxLenght = 0;
+		float longBoii = 0;
+
 		for (int i = 0; i < contours.size(); i++) {  
 
 			if (contourArea(contours[i]) > 4000) {
@@ -141,68 +143,74 @@ void main()
 
 				if (radius > 185 && diffx < 50 && diffy < 70) {
 
-					for (int yRate = -1; yRate < 2; yRate++) {
+					for (int yRate = -2; yRate <= 0; yRate++) {
 						cout << "yrate" << yRate << endl;
-						for (int xRate = -2; xRate < 2; xRate++) {
+						for (int xRate = -2; xRate <= 2; xRate++) {
 							cout << "xrate" << xRate << endl;
 							Point Pixel = Point(center.x, center.y);
 								
 							Point firstPixel = Point(0, 0);
 							Point lastPixel = Point(0, 0);
 							
-							while(Pixel.x < frame_width && Pixel.x > 0 && Pixel.y < frame_height && Pixel.y > 0){
+							if (xRate != 0 || yRate != 0) {
 
-								int value = contourImg.at<uchar>(Pixel.y,Pixel.x);
+								while (Pixel.x < frame_width && Pixel.x > 0 && Pixel.y < frame_height && Pixel.y > 0) {
 
-								
+									int value = contourImg.at<uchar>(Pixel.y, Pixel.x);
 
-								for (int x = abs(xRate); x > 0; x--) {
-									if (value == 255) {
-										if (firstPixel.x == 0 && firstPixel.y == 0) {
-											firstPixel = Pixel;
+
+
+									for (int x = abs(xRate); x > 0; x--) {
+										if (value == 255) {
+											if (firstPixel.x == 0 && firstPixel.y == 0) {
+												firstPixel = Pixel;
+											}
+											lastPixel = Pixel;
 										}
-										lastPixel = Pixel;
-									}
-									if (xRate > 0) {
-										Pixel.x++;
-									}
-									else {
-										Pixel.x--;
-									}
-								}
-								for (int y = abs(yRate); y > 0; y--) {
-
-									if (value == 255) {
-										if (firstPixel.x == 0 && firstPixel.y == 0) {
-											firstPixel = Pixel;
+										if (xRate > 0) {
+											Pixel.x++;
 										}
-										lastPixel = Pixel;
+										else {
+											Pixel.x--;
+										}
 									}
-									
-									if (yRate > 0) {
-										Pixel.y++;
-									}
-									else {
-										Pixel.y--;
+									for (int y = abs(yRate); y > 0; y--) {
+
+										if (value == 255) {
+											if (firstPixel.x == 0 && firstPixel.y == 0) {
+												firstPixel = Pixel;
+											}
+											lastPixel = Pixel;
+										}
+
+										if (yRate > 0) {
+											Pixel.y++;
+										}
+										else {
+											Pixel.y--;
+										}
 									}
 								}
 								//cout << Pixel.x << "   " << Pixel.y << "   " << value << endl;
-							}
+
 
 							float Lenght = norm(firstPixel - lastPixel);
-							if (Lenght > maxLenght) {
-								maxLenght = Lenght;
+								if (Lenght > maxLenght) {
+									maxLenght = Lenght;
+								}
+
+							longBoii = maxLenght / radius;
+
+							cout << maxLenght << endl;
+							
 							}
-
-							cout << Lenght << endl;
-
 						}
 						
 
 
 					}
 					
-					cout << "max lenghthth. The long boii: " << maxLenght << endl;
+					cout << "max lenghthth. The long boii: " << longBoii << endl;
 
 					//circle(frame, center, radius, color, 2);
 					//circle(frame, center, 1, color, 5);
