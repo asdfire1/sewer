@@ -51,7 +51,7 @@ void main()
 	
 	outputfile << "Seconds, GValue, Class" << endl;
 
-	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipe05sc.mp4");
+	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipe01sc.mp4");
 
 	//Uncomment the following line if you want to start the video in the middle
 	//cap.set(CAP_PROP_POS_MSEC, 300); 
@@ -89,13 +89,14 @@ void main()
 	string objectClass = "";
 	double frames = 0;
 
-	
+
 
 
 	while (true)
 	{
 
 		Mat contourImg = Mat(frame_size, CV_8UC1, Scalar(0));
+		Mat lines = Mat(frame_size, CV_8UC1, Scalar(0));
 		Mat frame;
 		bool bSuccess = cap.read(frame); // read a new frame from video 
 		frames++;
@@ -107,13 +108,13 @@ void main()
 		}
 
 		//medianBlur(frame, Blur, 5);
-		inRange(frame, Scalar(120, 120, 120), Scalar(255, 255, 255), bin);
+		inRange(frame, Scalar(135, 135, 135), Scalar(255, 255, 255), bin);
 
-		Mat elem3 = getStructuringElement(MORPH_ELLIPSE, Size(3, 3));
+		Mat elem3 = getStructuringElement(MORPH_ELLIPSE, Size(5, 5));
 		morphologyEx(bin, bin, MORPH_OPEN, elem3);
 		//Mat elem = getStructuringElement(MORPH_ELLIPSE, Size(3, 3));
 		//morphologyEx(bin, bin, MORPH_DILATE, elem);
-		Mat elem2 = getStructuringElement(MORPH_ELLIPSE, Size(9, 9));
+		Mat elem2 = getStructuringElement(MORPH_ELLIPSE, Size(13, 13));
 		morphologyEx(bin, bin, MORPH_CLOSE, elem2);
 		
 
@@ -141,7 +142,7 @@ void main()
 				float diffx = abs(frame_width / 2 - center.x);
 				float diffy = abs(frame_height / 2 - center.y);
 
-				if (radius > 185 && diffx < 50 && diffy < 70) {
+				if (radius > 180 && diffx < 50 && diffy < 70) {
 
 					for (int yRate = -2; yRate <= 0; yRate++) {
 						cout << "yrate" << yRate << endl;
@@ -161,11 +162,13 @@ void main()
 
 
 									for (int x = abs(xRate); x > 0; x--) {
+										
 										if (value == 255) {
 											if (firstPixel.x == 0 && firstPixel.y == 0) {
 												firstPixel = Pixel;
 											}
 											lastPixel = Pixel;
+											lines.at<uchar>(Point(Pixel.x, Pixel.y)) = 255;
 										}
 										if (xRate > 0) {
 											Pixel.x++;
@@ -173,14 +176,16 @@ void main()
 										else {
 											Pixel.x--;
 										}
+										
 									}
 									for (int y = abs(yRate); y > 0; y--) {
-
+										
 										if (value == 255) {
 											if (firstPixel.x == 0 && firstPixel.y == 0) {
 												firstPixel = Pixel;
 											}
 											lastPixel = Pixel;
+											lines.at<uchar>(Point(Pixel.x, Pixel.y)) = 255;
 										}
 
 										if (yRate > 0) {
@@ -190,6 +195,8 @@ void main()
 											Pixel.y--;
 										}
 									}
+									
+									//imshow("contour", contourImg);
 								}
 								//cout << Pixel.x << "   " << Pixel.y << "   " << value << endl;
 
@@ -206,11 +213,19 @@ void main()
 							}
 						}
 						
-
+						
 
 					}
 					
 					cout << "max lenghthth. The long boii: " << longBoii << endl;
+
+					if (gs.size() == 0) {
+						cout << "new object" << endl;
+						float seconds = frames / frames_per_second;
+						outputfile << seconds << ", ";
+					}
+					gs.push_back(longBoii);
+					cout << gs.size();
 
 					//circle(frame, center, radius, color, 2);
 					//circle(frame, center, 1, color, 5);
@@ -223,11 +238,25 @@ void main()
 					
 				}
 								
-				countdown = 5;
+				countdown = 10;
 			}
 		}
 
-		
+		if (countdown == 0 && gs.size() > 0) {
+			cout << "max: " << max(gs) << endl;
+			if (max(gs) > 0.1) {
+				objectClass = "fs2";
+			}
+			else if (max(gs) > 0.01) {
+				objectClass = "fs1";
+			}
+			else {
+				objectClass = "0";
+			}
+			outputfile << max(gs) << ", " << objectClass << endl;
+			gs.clear();
+		}
+
 
 		if (countdown < -7) {
 			objectClass = "";
@@ -242,7 +271,8 @@ void main()
 		//show the frame in the created window
 		imshow(window_name, frame);
 
-		imshow("bin", contourImg);
+		imshow("contour", contourImg);
+		imshow("lines", lines);
 
 
 		if (waitKey(10) == 27)
