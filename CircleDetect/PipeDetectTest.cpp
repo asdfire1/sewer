@@ -46,12 +46,12 @@ ofstream outputfile;
 
 void main()
 {
-	
+
 	outputfile.open("C:\\Users\\nxtzo\\Desktop\\Pipes\\data.txt", ios::app);
-	
+
 	outputfile << "Seconds, GValue, Class" << endl;
 
-	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipe01sc.mp4");
+	VideoCapture cap("C:\\Users\\nxtzo\\Desktop\\Pipes\\pipe02sc.mp4");
 
 	//Uncomment the following line if you want to start the video in the middle
 	//cap.set(CAP_PROP_POS_MSEC, 300); 
@@ -96,7 +96,6 @@ void main()
 	{
 
 		Mat contourImg = Mat(frame_size, CV_8UC1, Scalar(0));
-		Mat lines = Mat(frame_size, CV_8UC1, Scalar(0));
 		Mat frame;
 		bool bSuccess = cap.read(frame); // read a new frame from video 
 		frames++;
@@ -114,45 +113,45 @@ void main()
 		morphologyEx(bin, bin, MORPH_OPEN, elem3);
 		//Mat elem = getStructuringElement(MORPH_ELLIPSE, Size(3, 3));
 		//morphologyEx(bin, bin, MORPH_DILATE, elem);
-		Mat elem2 = getStructuringElement(MORPH_ELLIPSE, Size(13, 13));
+		Mat elem2 = getStructuringElement(MORPH_ELLIPSE, Size(15, 15));
 		morphologyEx(bin, bin, MORPH_CLOSE, elem2);
-		
+
 
 
 		//Find objects:
 
-		
+
 		vector<vector<Point>> contours; // a vector of vectors holding points used to save the contours
 		//vector<Vec4i> hier; // a vector of vectors holding 4 intigers used to save hierarchy data
 
 		findContours(bin, contours, RETR_EXTERNAL, CHAIN_APPROX_NONE);
-		
+
 
 		//Loop through all external contours (hierarchy = -1)
-		
+
 		float maxLenght = 0;
 		float longBoii = 0;
 
-		for (int i = 0; i < contours.size(); i++) {  
+		for (int i = 0; i < contours.size(); i++) {
 
-			if (contourArea(contours[i]) > 4000) {
+			if (contourArea(contours[i]) > 3600) {
 
 				drawContours(contourImg, contours, i, Scalar(255), FILLED, 8);
 				minEnclosingCircle(contours[i], center, radius);
 				float diffx = abs(frame_width / 2 - center.x);
 				float diffy = abs(frame_height / 2 - center.y);
 
-				if (radius > 180 && diffx < 50 && diffy < 70) {
+				if (radius > 170 && diffx < 40 && diffy < 50) {
 
-					for (int yRate = -2; yRate <= 0; yRate++) {
-						cout << "yrate" << yRate << endl;
-						for (int xRate = -2; xRate <= 2; xRate++) {
-							cout << "xrate" << xRate << endl;
+					for (int yRate = -3; yRate <= 1; yRate++) {
+						//cout << "yrate" << yRate << endl;
+						for (int xRate = -3; xRate <= 3; xRate++) {
+							//cout << "xrate" << xRate << endl;
 							Point Pixel = Point(center.x, center.y);
-								
+
 							Point firstPixel = Point(0, 0);
 							Point lastPixel = Point(0, 0);
-							
+
 							if (xRate != 0 || yRate != 0) {
 
 								while (Pixel.x < frame_width && Pixel.x > 0 && Pixel.y < frame_height && Pixel.y > 0) {
@@ -160,15 +159,13 @@ void main()
 									int value = contourImg.at<uchar>(Pixel.y, Pixel.x);
 
 
-
 									for (int x = abs(xRate); x > 0; x--) {
-										
+
 										if (value == 255) {
 											if (firstPixel.x == 0 && firstPixel.y == 0) {
 												firstPixel = Pixel;
 											}
 											lastPixel = Pixel;
-											lines.at<uchar>(Point(Pixel.x, Pixel.y)) = 255;
 										}
 										if (xRate > 0) {
 											Pixel.x++;
@@ -176,16 +173,15 @@ void main()
 										else {
 											Pixel.x--;
 										}
-										
+
 									}
 									for (int y = abs(yRate); y > 0; y--) {
-										
+
 										if (value == 255) {
 											if (firstPixel.x == 0 && firstPixel.y == 0) {
 												firstPixel = Pixel;
 											}
 											lastPixel = Pixel;
-											lines.at<uchar>(Point(Pixel.x, Pixel.y)) = 255;
 										}
 
 										if (yRate > 0) {
@@ -195,28 +191,33 @@ void main()
 											Pixel.y--;
 										}
 									}
-									
+
+									if (firstPixel.x != 0 && firstPixel.y != 0) {
+
+										line(frame, center, firstPixel, Scalar(255, 0, 0), 2, 8);
+										line(frame, firstPixel, lastPixel, Scalar(0, 0, 255), 5, 8);
+									}
 									//imshow("contour", contourImg);
 								}
 								//cout << Pixel.x << "   " << Pixel.y << "   " << value << endl;
 
 
-							float Lenght = norm(firstPixel - lastPixel);
+								float Lenght = norm(firstPixel - lastPixel);
 								if (Lenght > maxLenght) {
 									maxLenght = Lenght;
 								}
 
-							longBoii = maxLenght / radius;
+								longBoii = maxLenght / radius;
 
-							cout << maxLenght << endl;
-							
+								//cout << maxLenght << endl;
+
 							}
 						}
-						
-						
+
+
 
 					}
-					
+
 					cout << "max lenghthth. The long boii: " << longBoii << endl;
 
 					if (gs.size() == 0) {
@@ -224,6 +225,7 @@ void main()
 						float seconds = frames / frames_per_second;
 						outputfile << seconds << ", ";
 					}
+
 					gs.push_back(longBoii);
 					cout << gs.size();
 
@@ -234,10 +236,10 @@ void main()
 
 					//rectangle(frame, rect, Scalar(0, 255, 0), 1);
 					//circle(frame, (rect.tl() + rect.br()) / 2, 1, Scalar(0, 255, 0), 5);
-					
-					
+
+
 				}
-								
+
 				countdown = 10;
 			}
 		}
@@ -261,7 +263,7 @@ void main()
 		if (countdown < -7) {
 			objectClass = "";
 		}
-		
+
 		countdown--;
 		//putText(frame, objectClass, Point(20, 250), FONT_HERSHEY_PLAIN, 2, color, 2);
 
@@ -272,7 +274,6 @@ void main()
 		imshow(window_name, frame);
 
 		imshow("contour", contourImg);
-		imshow("lines", lines);
 
 
 		if (waitKey(10) == 27)
